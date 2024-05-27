@@ -1,3 +1,5 @@
+import '/src/app/globals.css';
+import { AppProps } from 'next/app';
 import { MantineProvider } from '@mantine/core';
 
 function MyApp({ Component, pageProps }) {

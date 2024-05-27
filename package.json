@@ -12,12 +12,14 @@
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@mantine/core": "^7.10.0",
+    "@mantine/dropzone": "^7.10.0",
     "@mantine/hooks": "^7.10.0",
     "next": "14.2.3",
     "react": "^18",
     "react-dom": "^18",
     "react-draggable": "^4.4.6",
-    "react-resizable": "^3.0.5"
+    "react-resizable": "^3.0.5",
+    "react-rnd": "^10.4.11"
   },
   "devDependencies": {
     "eslint": "^8",

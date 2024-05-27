@@ -1,88 +1,45 @@
 import { useState } from 'react';
-import { Container, Group, Button, FileInput, Text, Loader } from '@mantine/core';
+import { Container, Grid } from '@mantine/core';
+import FileDropZone from '/components/DropZone.js';
+import DraggableResizableBox from '/components/DraggableResizableBox.js';
+import SelectionButtonGroup from '/components/SelectionButtonGroup.js';
 
 export default function Home() {
-  const [audioFile, setAudioFile] = useState(null);
-  const [videoFile, setVideoFile] = useState(null);
-  const [outputUrl, setOutputUrl] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [files, setFiles] = useState([]);
+  const [selectedType, setSelectedType] = useState(null);
 
-  const handleCombine = () => {
-    if (audioFile && videoFile) {
-      setLoading(true);
-      const video = document.createElement('video');
-      video.src = URL.createObjectURL(videoFile);
-
-      video.onloadedmetadata = () => {
-        const audio = document.createElement('audio');
-        audio.src = URL.createObjectURL(audioFile);
-
-        audio.onloadedmetadata = () => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-
-          const stream = canvas.captureStream();
-          const audioContext = new AudioContext();
-          const destination = audioContext.createMediaStreamDestination();
-          const source = audioContext.createMediaElementSource(audio);
-
-          source.connect(destination);
-          stream.addTrack(destination.stream.getAudioTracks()[0]);
-
-          const recorder = new MediaRecorder(stream);
-          const chunks = [];
-
-          recorder.ondataavailable = (e) => chunks.push(e.data);
-          recorder.onstop = () => {
-            const blob = new Blob(chunks, { type: 'video/webm' });
-            const url = URL.createObjectURL(blob);
-            setOutputUrl(url);
-            setLoading(false);
-          };
-
-          video.play();
-          audio.play();
-          recorder.start();
-
-          video.onended = () => {
-            audio.pause();
-            recorder.stop();
-          };
-
-          audio.onended = () => {
-            video.pause();
-            recorder.stop();
-          };
-        };
-      };
+  const handleDrop = (acceptedFiles) => {
+    setFiles(acceptedFiles);
+    if (acceptedFiles.length > 0) {
+      const fileType = acceptedFiles[0].type.startsWith('video') ? 'video' : 'audio';
+      setSelectedType(fileType);
     }
   };
 
   return (
     <Container>
-      <Group direction="column" spacing="xl">
-        <FileInput
-          placeholder="Upload video"
-          label="Video File"
-          accept="video/*"
-          onChange={setVideoFile}
-        />
-        <FileInput
-          placeholder="Upload audio"
-          label="Audio File"
-          accept="audio/*"
-          onChange={setAudioFile}
-        />
-        <Button onClick={handleCombine} disabled={loading}>
-          {loading ? <Loader size="sm" /> : 'Combine Audio and Video'}
-        </Button>
-        {outputUrl && (
-          <video controls src={outputUrl} style={{ marginTop: '20px' }} />
-        )}
-      </Group>
+      <FileDropZone onDrop={handleDrop} />
+      <Grid>
+        <Grid.Col span={8}>
+          {files.length > 0 && (
+            <DraggableResizableBox>
+              {selectedType === 'video' && (
+                <video controls style={{ width: '100%' }}>
+                  <source src={URL.createObjectURL(files[0])} type={files[0].type} />
+                </video>
+              )}
+              {selectedType === 'audio' && (
+                <audio controls style={{ width: '100%' }}>
+                  <source src={URL.createObjectURL(files[0])} type={files[0].type} />
+                </audio>
+              )}
+            </DraggableResizableBox>
+          )}
+        </Grid.Col>
+        <Grid.Col span={4}>
+          <SelectionButtonGroup type={selectedType} />
+        </Grid.Col>
+      </Grid>
     </Container>
   );
 }
